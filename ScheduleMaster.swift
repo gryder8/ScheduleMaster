@@ -11,7 +11,7 @@ import Foundation
 
 class ScheduleMaster {
     private var defaultScheduleForToday:String = ""
-    private var doesCurrentDayHaveSpecialSchedule:Bool = false
+//    private var doesCurrentDayHaveSpecialSchedule:Bool = false
     
     enum weekDay: Int, Decodable {
         case sunday = 1
@@ -85,7 +85,6 @@ class ScheduleMaster {
         
         //Bell Schedule Parser
         
-        //let mainBundle: Bundle = Bundle.main
         let pListURLBellSchedules: URL = mainBundle.url(forResource:"Schedules", withExtension:"plist")!
         
         if let data = try? Data(contentsOf: pListURLBellSchedules) {
@@ -97,8 +96,6 @@ class ScheduleMaster {
             //print ("I know a schedule with the type:\(schedule.scheduleType)")
         }
         
-//        print ("")
-//        print ("Normal schedule has these periods:")
         
         let normalSchedule: Schedule = allSchedules![0]
         
@@ -137,7 +134,7 @@ class ScheduleMaster {
     
     public func getScheduleType() -> String {
         var theSpecialDay: SpecialDay?
-        for canidateSpecialDay in allSpecialDays!{ //hack: pull the day and month and compare them seperately
+        for canidateSpecialDay in allSpecialDays!{
             if self.isDateWithininSpecialDay(specialDay: canidateSpecialDay) {
                 theSpecialDay = canidateSpecialDay
             }
@@ -146,10 +143,10 @@ class ScheduleMaster {
         if (theSpecialDay == nil){
             print(defaultScheduleForToday)
             return defaultScheduleForToday
-        } else {
-            print((theSpecialDay?.scheduleType)!)
-            return (theSpecialDay?.scheduleType)!
         }
+        
+        print((theSpecialDay?.scheduleType)!)
+        return (theSpecialDay?.scheduleType)!
         
     }
     
@@ -157,27 +154,25 @@ class ScheduleMaster {
         return Date();
     }
     
-    public func getCurrentBellTimeDescription() -> String { //get the current bellTime object and pull the description from it
-        var i = 0;
-        var x = 0;
-        var currentTime = Date()
-        currentTime = Calendar.current.date(bySettingHour: 9, minute: 30, second: 0, of: Date())!
-        var scheduleHolder: Schedule
-            while i<(allSchedules?.count)! {
-                scheduleHolder = allSchedules![i]
-                scheduleHolder.scheduleType = getScheduleType()
-                while x < scheduleHolder.bellTimes.count-1 {
-                    //print (convertDateToTimeInterval(myDate: currentTime))
-                    if convertDateToTimeInterval(myDate: currentTime) >= scheduleHolder.bellTimes[x].timeInterval && convertDateToTimeInterval(myDate: currentTime) < scheduleHolder.bellTimes[x+1].timeInterval {
-                        print(scheduleHolder.bellTimes[x].desc)
-                        return scheduleHolder.bellTimes[x].desc
-                    }
-                    x = x + 1;
-                }
-                i = i+1
+    public func getCurrentBellTimeDescription() -> String {
+        let baseTime  = Calendar.current.date(bySettingHour: 0, minute: 0, second: 0, of: Date())!
+        let dateTester = Calendar.current.date(bySettingHour: 9, minute: 36, second: 0, of: Date())!
+        let currentTimeAsInterval:TimeInterval = dateTester.timeIntervalSince(baseTime)
+        
+        let currentSchedule:Schedule = self.getCurrentBellSchedule() 
+        
+        let currentBellTimes:Array = currentSchedule.bellTimes
+        
+        var currentBellTime:BellTime?
+        for bellTime in currentBellTimes {
+            if bellTime.timeInterval <= currentTimeAsInterval {
+                currentBellTime = bellTime
+            }
         }
-        print ("Free")
-        return "Free"
+        
+        let description:String = (currentBellTime?.desc)!
+        //print(description)
+        return description
     }
     
     public func getNextBellTimeDescription() -> String {
@@ -193,14 +188,22 @@ class ScheduleMaster {
     //*************************************
     
     private func getCurrentBellSchedule() -> Schedule {
-        let bellTime:BellTime = BellTime(desc: "blank", timeInterval: 2300) //just to satisfy method return --REMOVE--
+        let currentScheduleType:String = self.getScheduleType()
         
-        let emptySchedule: Schedule = Schedule(scheduleType: "Blank", bellTimes: [bellTime,bellTime])
-        return emptySchedule
-        
-        //return Schedule("blank", "Period null", Date());
+        let currentSchedule:Schedule = self.getScheduleFor(scheduleType: currentScheduleType)
+        return currentSchedule
     }
     
+    private func getScheduleFor(scheduleType: String) -> Schedule {
+        var resultSchedule:Schedule?
+        for currentSchedule in allSchedules! {
+            if currentSchedule.scheduleType.lowercased() == scheduleType.lowercased() {
+                resultSchedule = currentSchedule
+            }
+        }
+        return resultSchedule!
+    }
+    //TODO: IMPLEMENT THESE!!!
 //    private func getNextBellTime() -> BellTime { //given the current time and schedule type, return the next bell time object
 //
 //    }
@@ -236,11 +239,11 @@ class ScheduleMaster {
         return inRange
     }
     
-    func convertDateToTimeInterval (myDate:Date) -> TimeInterval{ //TODO: Pass date object as a param
-        let calendar = Calendar.current
-        let hourToSec = calendar.component(.hour, from: myDate)*3600;
-        let minToSec = calendar.component(.minute, from: myDate)*60;
-        return Double(minToSec + hourToSec)
-    }
+//    func convertDateToTimeInterval (myDate:Date) -> TimeInterval{ //TODO: Pass date object as a param
+//        let calendar = Calendar.current
+//        let hourToSec = calendar.component(.hour, from: myDate)*3600;
+//        let minToSec = calendar.component(.minute, from: myDate)*60;
+//        return Double(minToSec + hourToSec)
+//    }
     
 }
