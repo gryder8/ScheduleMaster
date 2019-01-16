@@ -141,11 +141,11 @@ class ScheduleMaster {
         }
 
         if (theSpecialDay == nil){
-            print(defaultScheduleForToday)
+            //print(defaultScheduleForToday)
             return defaultScheduleForToday
         }
         
-        print((theSpecialDay?.scheduleType)!)
+        //print((theSpecialDay?.scheduleType)!)
         return (theSpecialDay?.scheduleType)!
         
     }
@@ -154,9 +154,11 @@ class ScheduleMaster {
         return Date();
     }
     
+     let dateTester = Calendar.current.date(bySettingHour: 6, minute: 45, second: 0, of: Date())!
+    
     public func getCurrentBellTimeDescription() -> String {
         let baseTime  = Calendar.current.date(bySettingHour: 0, minute: 0, second: 0, of: Date())!
-        let dateTester = Calendar.current.date(bySettingHour: 9, minute: 36, second: 0, of: Date())!
+        //let dateTester = Calendar.current.date(bySettingHour: 6, minute: 45, second: 0, of: Date())!
         let currentTimeAsInterval:TimeInterval = dateTester.timeIntervalSince(baseTime)
         
         let currentSchedule:Schedule = self.getCurrentBellSchedule() 
@@ -171,12 +173,29 @@ class ScheduleMaster {
         }
         
         let description:String = (currentBellTime?.desc)!
-        //print(description)
         return description
     }
     
     public func getNextBellTimeDescription() -> String {
-        return "String";
+        let baseTime  = Calendar.current.date(bySettingHour: 0, minute: 0, second: 0, of: Date())!
+        //let dateTester = Calendar.current.date(bySettingHour: 6, minute: 45, second: 0, of: Date())!
+        let currentTimeAsInterval:TimeInterval = dateTester.timeIntervalSince(baseTime)
+        
+        let currentSchedule:Schedule = self.getCurrentBellSchedule()
+        
+        let currentBellTimes:Array = currentSchedule.bellTimes
+        
+        var currentBellTime:BellTime?
+        for bellTime in currentBellTimes {
+            if bellTime.timeInterval > currentTimeAsInterval {
+                //print (bellTime.desc)
+                return bellTime.desc
+                //currentBellTime = bellTime
+            }
+        }
+        
+        //let description:String = (currentBellTime?.desc)!
+        return "Free"
     }
     
 
@@ -238,12 +257,4 @@ class ScheduleMaster {
         
         return inRange
     }
-    
-//    func convertDateToTimeInterval (myDate:Date) -> TimeInterval{ //TODO: Pass date object as a param
-//        let calendar = Calendar.current
-//        let hourToSec = calendar.component(.hour, from: myDate)*3600;
-//        let minToSec = calendar.component(.minute, from: myDate)*60;
-//        return Double(minToSec + hourToSec)
-//    }
-    
 }
